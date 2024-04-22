@@ -1,0 +1,437 @@
+[
+  {
+    "type": "function",
+    "name": "build",
+    "inputs": [
+      {
+        "name": "chainId",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "cfg",
+        "type": "tuple",
+        "internalType": "struct IL1BuildAgent.BuildConfig",
+        "components": [
+          {
+            "name": "finalSystemOwner",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "l2OutputOracleProposer",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "l2OutputOracleChallenger",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "batchSenderAddress",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "p2pSequencerAddress",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "messageRelayer",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "l2BlockTime",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "l2GasLimit",
+            "type": "uint64",
+            "internalType": "uint64"
+          },
+          {
+            "name": "l2OutputOracleSubmissionInterval",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "finalizationPeriodSeconds",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "l2OutputOracleStartingBlockNumber",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "l2OutputOracleStartingTimestamp",
+            "type": "uint256",
+            "internalType": "uint256"
+          }
+        ]
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "tuple",
+        "internalType": "struct IL1BuildAgent.BuiltAddressList",
+        "components": [
+          {
+            "name": "proxyAdmin",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "systemConfig",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "l1StandardBridge",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "l1ERC721Bridge",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "l1CrossDomainMessenger",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "oasysL2OutputOracle",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "oasysPortal",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "protocolVersions",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "batchInbox",
+            "type": "address",
+            "internalType": "address"
+          }
+        ]
+      },
+      {
+        "name": "",
+        "type": "address[7]",
+        "internalType": "address[7]"
+      }
+    ],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "builtLists",
+    "inputs": [
+      {
+        "name": "chainId",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "chainIds",
+    "inputs": [
+      {
+        "name": "index",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "chainId",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "computeInboxAddress",
+    "inputs": [
+      {
+        "name": "chainId",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "batchInbox",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getBuilderGlobally",
+    "inputs": [
+      {
+        "name": "chainId",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "builder",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getBuilderInternally",
+    "inputs": [
+      {
+        "name": "_chainId",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "isUniqueChainId",
+    "inputs": [
+      {
+        "name": "chainId",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "bool",
+        "internalType": "bool"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "isUpgradingExistingL2",
+    "inputs": [
+      {
+        "name": "_chainId",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "bool",
+        "internalType": "bool"
+      },
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "pauseLegacyL1CrossDomainMessenger",
+    "inputs": [
+      {
+        "name": "_chainId",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "addressManager",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "unpauseLegacyL1CrossDomainMessenger",
+    "inputs": [
+      {
+        "name": "_chainId",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "addressManager",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "oldL1CrossDomainMessenger",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "event",
+    "name": "Deployed",
+    "inputs": [
+      {
+        "name": "chainId",
+        "type": "uint256",
+        "indexed": true,
+        "internalType": "uint256"
+      },
+      {
+        "name": "finalSystemOwner",
+        "type": "address",
+        "indexed": false,
+        "internalType": "address"
+      },
+      {
+        "name": "results",
+        "type": "tuple",
+        "indexed": false,
+        "internalType": "struct IL1BuildAgent.BuiltAddressList",
+        "components": [
+          {
+            "name": "proxyAdmin",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "systemConfig",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "l1StandardBridge",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "l1ERC721Bridge",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "l1CrossDomainMessenger",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "oasysL2OutputOracle",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "oasysPortal",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "protocolVersions",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "batchInbox",
+            "type": "address",
+            "internalType": "address"
+          }
+        ]
+      },
+      {
+        "name": "impls",
+        "type": "address[7]",
+        "indexed": false,
+        "internalType": "address[7]"
+      }
+    ],
+    "anonymous": false
+  }
+]

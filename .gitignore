@@ -1,0 +1,9 @@
+/docker-compose.override.yml
+/data
+
+.env*
+!.env.sample.*
+
+/assets/*
+!/assets/contractupdate.json
+!/assets/empty.json

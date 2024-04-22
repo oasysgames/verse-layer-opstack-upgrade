@@ -1,0 +1,7 @@
+FROM ghcr.io/foundry-rs/foundry:latest as foundry
+
+FROM ghcr.io/oasysgames/oasys-opstack/op-migrate:op-migrate
+
+RUN apt update
+RUN apt install -y curl jq
+COPY --from=foundry /usr/local/bin/cast /usr/local/bin/
