@@ -2,47 +2,47 @@
 
 Helper repository for upgrades from legacy Optimism to OPStack.
 
-## 用語定義
-### Builderウォレット
+## Glossary
+### Builder Wallet
 
-Verse Ownerウォレットとも呼ばれます。レガシーOptimismのコントラクトセットを L1へデプロイする際に使用したウォレットです。OPStackのコントラクトセットをL1へデプロイする際に使用します。
+Sometimes called `Verse Owner Wallet`. This is the wallet used to deploy the legacy Optimism contract set to L1. It will be used to deploy the OPStack contract set to L1 as well.
 
-### レガシーノード
+### Legacy Node
 
-既存のレガシーOptimismが稼働しているノードです。レガシーノードはOPStackアップグレード前のチェーンデータ(残高やトレースデータ等)をユーザーに提供するHistorical Nodeとして使用するためアップグレード後も稼働させておく必要があります。
+The node on which Legacy Optimism is running. The Legacy Node must remain running as a `Historical Node` after upgrading to OPStack. Historical Nodes provide users with pre-upgrade chain data (balances, trace data, etc.).
 
-### OPStackノード
+### OPStack Node
 
-OPStackを稼働させる新しいノードです。レガシーノードとは別のインスタンスが推奨されます。また、OPStackノード上にレガシーOptimismのレプリカを作成するためレガシーノードと同量以上のディスク容量を必要とします。ブロック数によりますがレプリケーション完了に数時間から数十時間かかるため早めに構築する事が推奨されます。
+This is a new node for running OPStack. It is recommended to use a separate instance from the legacy node. An OPStack node requires disk capacity equal to or greater than the legacy node to create a replica of legacy Optimism. Depending on the number of blocks, replication may take several hours to several days, so it is recommended to setup early.
 
-## アップグレードの流れ
+## Upgrade Process
 
-### 事前作業
+### Preparation Tasks
 
-以下のタスクはサービス停止を伴わないので事前に行えます。
-1. OPStackノードの仮セットアップ
-1. レプリカのセットアップ
-1. Legacyコントラクトのオーナー転送
+The following tasks do not involve service downtime and can be done in advance:
+1. Setup the OPStack node
+1. Setup the Replica
+1. Transfer of ownership of legacy contracts
 
-### 当日作業
+### Tasks on Upgrade Day
 
-以下のタスクはサービス停止を伴うためメンテナンス時間が必要です。
-1. レガシーノードの構成変更とRPCのブロック
-1. ブリッジコントラクトの停止
-1. デポジットの待機
-1. ロールアップの待機
-1. レプリケーションの確認
-1. レプリカの停止
-1. OPStackコントラクトセットをデプロイ
-1. OPStack構成ファイルのダウンロード
-1. データマイグレーション
-1. レガシーノードの構成変更
-1. OPStackサービスの起動
+The following tasks require service downtime, so maintenance time is needed:
+1. Change configuration and Blocking new transactions of the legacy node 
+1. Pause L1 bridge contracts
+1. Waiting for L1 deposits
+1. Waiting for L2 rollups
+1. Waiting for replication
+1. Stop the replica
+1. Deployment of the OPStack contracts to L1
+1. Downloading of OPStack configuration files
+1. L2 data migration
+1. Change configuration of the legacy node
+1. Launch of the OPStack
 
-## 事前作業
-### OPStackノードの仮セットアップ
+## Preparation Tasks
+### Setup the OPStack node
 
-OPStackノードを仮セットアップします。まず、[verse-layer-opstack](https://github.com/oasysgames/verse-layer-opstack)リポジトリをクローンします。
+Clone the [verse-layer-opstack](https://github.com/oasysgames/verse-layer-opstack) repository.
 ```shell
 git clone https://github.com/oasysgames/verse-layer-opstack.git
 
@@ -54,7 +54,7 @@ Generate a JWT secret for authentication between op-node and op-geth. This secre
 openssl rand -hex 32 > assets/jwt.txt
 ```
 
-環境変数ファイルを作成します。
+Create an environment variables file.
 ```shell
 # Sample for Oasys mainnet
 cp .env.sample.mainnet .env
@@ -63,33 +63,35 @@ cp .env.sample.mainnet .env
 cp .env.sample.testnet .env
 ```
 
-以下の環境変数はレガシーノードの`verse-layer-optimism/.env`ファイルからコピーします。
+Copy the following environment variables from the `verse-layer-optimism/.env` file of the legacy node.
 ```shell
-OP_CHAIN_ID=<レガシー環境での`L2_CHAIN_ID`と同じチェーンIDをセットしてください>
+OP_CHAIN_ID=<Set the same chain ID as `L2_CHAIN_ID` in the legacy node>
 
-OP_PROPOSER_ADDR=<レガシー環境での`PROPOSER_ADDRESS`と同じアドレスをセットしてください>
-OP_PROPOSER_KEY=<レガシー環境での`PROPOSER_KEY`と同じ秘密鍵をセットしてください>
+OP_PROPOSER_ADDR=<Set the same address as `PROPOSER_ADDRESS` in the legacy node>
+OP_PROPOSER_KEY=<Set the same secret key as `PROPOSER_KEY` in the legacy node>
 
-OP_BATCHER_ADDR=<レガシー環境での`SEQUENCER_ADDRESS`と同じアドレスをセットしてください>
-OP_BATCHER_KEY=<レガシー環境での`SEQUENCER_KEY`と同じ秘密鍵をセットしてください>
+OP_BATCHER_ADDR=<Set the same address as `SEQUENCER_ADDRESS` in the legacy node>
+OP_BATCHER_KEY=<Set the same secret key as `SEQUENCER_KEY` in the legacy node>
 
-MR_PROVER_ADDR=<レガシー環境での`MESSAGE_RELAYER_ADDRESS`と同じアドレスをセットしてください>
-MR_PROVER_KEY=<レガシー環境での`MESSAGE_RELAYER_KEY`と同じ秘密鍵をセットしてください>
-MR_FINALIZER_ADDR=<レガシー環境での`MESSAGE_RELAYER_ADDRESS`と同じアドレスをセットしてください>
-MR_FINALIZER_KEY=<レガシー環境での`MESSAGE_RELAYER_KEY`と同じ秘密鍵をセットしてください>
+MR_PROVER_ADDR=<Set the same address as `MESSAGE_RELAYER_ADDRESS` in the legacy node>
+MR_PROVER_KEY=<Set the same secret key as `MESSAGE_RELAYER_KEY` in the legacy node>
+MR_FINALIZER_ADDR=<Set the same address as `MESSAGE_RELAYER_ADDRESS` in the legacy node>
+MR_FINALIZER_KEY=<Set the same secret key as `MESSAGE_RELAYER_KEY` in the legacy node>
 
-VERIFY_SUBMITTER_ADDR=<レガシー環境での`verse submitter(oasvlfy)`と同じアドレスをセットしてください>
-VERIFY_SUBMITTER_KEY=<レガシー環境での`verse submitter(oasvlfy)`と同じ秘密鍵をセットしてください>
+VERIFY_SUBMITTER_ADDR=<Set the same address as `verse submitter(oasvlfy)` in the legacy node>
+VERIFY_SUBMITTER_KEY=<Set the same secret key as `verse submitter(oasvlfy)` in the legacy node>
 
-OP_ETH_RPC_HTTP_PORT=<レガシー環境での`L2GETH_HTTP_PORT`と同じポート番号をセットしてください>
-OP_ETH_RPC_WS_PORT=<レガシー環境での`L2GETH_WS_PORT`と同じポート番号をセットしてください>
+OP_ETH_RPC_HTTP_PORT=<Set the same port number as `L2GETH_HTTP_PORT` in the legacy node>
+OP_ETH_RPC_WS_PORT=<Set the same port number as `L2GETH_WS_PORT` in the legacy node>
 ```
 
-それ以外の環境変数はOPStackコントラクトのデプロイ後にセットします。
+Other environment variables will be set after deploying OPStack contracts.
 
-### レプリカの構築
+### Setup the Replica
 
-レガシーOptimismのレプリカをセットアップします。まず、一つ前のステップで仮セットアップしたOPStackノードの`verse-layer-opstack`ディレクトリ直下にこの`verse-layer-opstack-upgrade`リポジトリをクローンします。
+Setup the replica of the legacy Optimism.
+
+Clone this `verse-layer-opstack-upgrade` repository directly under the `verse-layer-opstack` directory of the OPStack node you just setup.
 ```shell
 cd /path/to/verse-layer-opstack
 
@@ -98,7 +100,7 @@ git clone https://github.com/oasysgames/verse-layer-opstack-upgrade.git
 cd verse-layer-opstack-upgrade
 ```
 
-環境変数ファイルを作成します。
+Create an environment variables file.
 ```shell
 # Sample for Oasys mainnet
 cp .env.sample.mainnet .env
@@ -107,25 +109,25 @@ cp .env.sample.mainnet .env
 cp .env.sample.testnet .env
 ```
 
-以下の環境変数をセットします。
+Set the following environment variables.
 ```shell
 L2_CHAIN_ID=<L2 Chain ID>
 ORIGIN_RPC_URL=<URL of legacy l2geth rpc>
 ORIGIN_DTL_URL=<URL of legacy data-transport-layer endpoint>
 ```
 
-レガシーノードの`verse-layer-optimism/assets`ディレクトリから以下のファイルを`verse-layer-opstack-upgrade/assets`ディレクトリにコピーします。
+Copy the following files from the `verse-layer-optimism/assets` directory on the legacy node to the `verse-layer-opstack-upgrade/assets` directory on the OPStack node:
 - addresses.json
 - genesis.json
 - contractupdate.json
-  - このファイルはレガシーノードに存在する場合のみ上書きコピーします
+  - Only overwrite this file if it exists in the legacy node.
 
-レプリカコンテナを起動します。
+Start the replica.
 ```shell
 docker-compose up -d replica
 ```
 
-`New block`ログが出力されていれば同期が進行しています。
+If the `New block` logs are being output, synchronization is progressing.
 ```shell
 docker-compose logs -f replica
 
@@ -135,32 +137,26 @@ replica-1  | INFO [04-20|07:05:18.665] New block                                
 replica-1  | INFO [04-20|07:05:18.668] New block                                index=1     l1-timestamp=1713092629 l1-blocknumber=45 tx-hash=0xcab3d8a811aa6512d707817fff5bdd7cb6417fef515cd1ddbf397790fa7f6052 queue-orign=sequencer gas=21000 fees=0 elapsed=228.167µs
 ```
 
-以上でレプリカの構築は完了です。レプリケーションには数時間から数十時間を要するためアップグレード日までレプリカは起動したままにします。
+The replica should remain running until the day of the upgrade.
 
-### Legacyコントラクトのオーナー転送
-アップグレードを行うためには一部のLegacyコントラクトのオーナー権限をOasysが提供する[`L1BuildAgent`](../../packages/contracts-bedrock/src/oasys/L1/build/L1BuildAgent.sol)コントラクトに転送しなければなりません。
+### Transfer of ownership of legacy contracts
+To proceed with the upgrade, the ownership of some legacy contracts must be transferred to the [`L1BuildAgent`](../../packages/contracts-bedrock/src/oasys/L1/build/L1BuildAgent.sol) provided by Oasys.
 
-**L1BuildAgentのコントラクトアドレス**
+**L1BuildAgent Contract Address**
 - Oasys Mainnet: `0x85D92cD5d9b7942f2Ed0d02C6b5120E9D43C52aA`
 - Oasys Testnet: `0x85D92cD5d9b7942f2Ed0d02C6b5120E9D43C52aA`
 
-:::warning
-！！！！！超注意！！！！！
-オーナーの転送は取り消すことが出来ないので十分に注意します。転送先を間違えるとL2の管理権限を永久に失います。
-:::
+> [!CAUTION]
+> Please be very careful as the transfer of ownership is irrevocable. An incorrect transfer will result in permanent loss of control of the L2.
 
-**オーナー転送が必要なLegacyコントラクト**
-- AddressManager
-  - Transfer Method: `transferOwnership(address newOwner)`
-  - ABI: [Lib_AddressManager.json](./docs/abi/Lib_AddressManager.json)
-- L1StandardBridge
-  - Transfer Method: `setOwner(address _owner)`
-  - ABI: [L1ChugSplashProxy.json](./docs/abi/L1ChugSplashProxy.json)
-- L1ERC721Bridge
-  - Transfer Method: `setOwner(address _owner)`
-  - ABI: [L1ChugSplashProxy.json](./docs/abi/L1ChugSplashProxy.json)
+**Legacy Contracts that Require Ownership Transfer**
+| Conttract | Transfer method | ABI |
+| - | - | - |
+| AddressManager   | `transferOwnership(address newOwner)` | [Lib_AddressManager.json](./docs/abi/Lib_AddressManager.json) |
+| L1StandardBridge | `setOwner(address _owner)`            | [L1ChugSplashProxy.json](./docs/abi/L1ChugSplashProxy.json) |
+| L1ERC721Bridge   | `setOwner(address _owner)`            | [L1ChugSplashProxy.json](./docs/abi/L1ChugSplashProxy.json) |
 
-Legacyコントラクトのアドレスは`verse-layer-opstack-upgrade/assets/addresses.json`から取得します。
+Addresses of legacy contracts is taken from `verse-layer-opstack-upgrade/assets/addresses.json`.
 ```shell
 cd /path/to/verse-layer-opstack/verse-layer-opstack-upgrade
 
@@ -174,11 +170,11 @@ jq -r .Proxy__OVM_L1StandardBridge assets/addresses.json
 jq -r .Proxy__OVM_L1ERC721Bridge assets/addresses.json
 ```
 
-## 当日作業
-### 1. [レガシーノード] レガシーノードの構成変更とRPCのブロック
-レガシーノードのdata-transport-layerをアップグレード作業用のコンテナイメージに変更します。また、新しいブロックが作られないようにl2gethのアクセス制御を有効化してRPCをブロックします。
+## Tasks on Upgrade Day
+### 1. [Legacy Node] Change configuration and Blocking new transactions of the legacy node 
+Change the `data-transport-layer` container of the legacy node to a container image for the upgrading. Additionally, enable access control on the `l2geth` container to blocking transactions and prevent new blocks from being created.
 
-まず、レガシーノードに`verse-layer-optimism/docker-compose.override.yml`ファイルを作成します。既に存在する場合は差分を追加します。
+Create `verse-layer-optimism/docker-compose.override.yml` file on the legacy node. If it already exists, add the differences.
 ```yaml
 services:
   data-transport-layer:
@@ -190,38 +186,37 @@ services:
       ACL_CONFIG: /assets/acl.yml
 ```
 
-次にアクセス制御設定ファイル`./assets/acl.yml`を作成します。既に存在する場合は中身を完全に置き換えます。
+Create access control configuration file `./assets/acl.yml`. If it already exists, replace its contents.
 ```yaml
 from: []
 ```
 
-コンテナをstop&startして変更を反映させます。**restartではなく必ずstop&startしてください。**
+Stop and start the containers to reflect the changes. **Do not use `docker-compose restart` command.**
 ```shell
 docker-compose stop data-transport-layer l2geth
 docker-compose up -d data-transport-layer l2geth
 ```
 
-acl.ymlが読み込まれているか確認します。
+Check if the `acl.yml` has been loaded.
 ```shell
 docker-compose logs -f --tail=10000 l2geth | grep 'Reload access control config'
 
+# Output
 l2geth-1  | INFO [04-20|08:20:57.450] Reload access control config             md5hash=4ad59fbe28b0482602e30eb0f0088217
 ```
 
-### 2. [Builderウォレット] ブリッジコントラクトの停止
-BuilderウォレットからL1BuildAgentの`pauseLegacyL1CrossDomainMessenger(uint256 _chainId, address addressManager)`メソッドを実行してL1のブリッジコントラクトを一時的に停止します。`_chainId`にはL2チェーンIDを、`addressManager`にはAddressManagerコントラクトのアドレスを指定します。
+### 2. [Builder Wallet] Pause L1 bridge contracts
+Transact the `pauseLegacyL1CrossDomainMessenger(uint256 _chainId, address addressManager)` method of the L1BuildAgent contract from the Builder Wallet to pausing L1 bridge contracts. The parameter `_chainId` is the L2 chain ID and the parameter `addressManager` is the address of the AddressManager contract. Download the  [L1BuildAgent ABI](./docs/abi/IL1BuildAgent.json) here.
 
-[L1BuildAgentのABI](./docs/abi/IL1BuildAgent.json)
-
-### 3. [OPStackノード] デポジットの待機
-L1のブリッジコントラクトに送信された全てのデポジットトランザクションがレガシーノードに反映されるのを待ちます。
+### 3. [OPStack Node] Waiting for L1 deposits
+Wait for all deposit transactions sent to the L1 bridge contract to be bridged to the legacy node.
 ```shell
 cd /path/to/verse-layer-opstack/verse-layer-opstack-upgrade
 
 docker-compose run op-migrate /upgrade/scripts/check-deposits.sh origin
 ```
 
-`All deposits have been batch submitted`と出力されれば全てのL1デポジットがレガシーノードに反映されています。
+When `All deposits have been batch submitted` is displayed, all L1 deposits have been bridged to the Legacy Node.
 ```shell
 INFO [04-21|06:28:42.844] Checking L2 block                        number=662
 INFO [04-21|06:28:42.845] Checking L2 block                        number=661
@@ -231,20 +226,20 @@ INFO [04-21|06:28:42.848] Remaining deposits that must be submitted count=0
 INFO [04-21|06:28:42.848] All deposits have been batch submitted
 ```
 
-同様に、レプリカにもL1デポジットが反映されるのを待ちます。
+Similarly, wait for L1 deposits to be bridged to the replica.
 ```shell
 docker-compose run op-migrate /upgrade/scripts/check-deposits.sh replica
 ```
 
-### 4. [OPStackノード] ロールアップの待機
-全てのL2ブロックがL1へロールアップされるのを待ちます。
+### 4. [OPStack Node] Waiting for L2 rollups
+Wait for all L2 blocks to be rolled up to the L1.
 ```shell
 cd /path/to/verse-layer-opstack/verse-layer-opstack-upgrade
 
 docker-compose run op-migrate /upgrade/scripts/check-rollups.sh
 ```
 
-`All batches have been submitted`と出力されれば全てのL2ブロックがL1へロールアップされています。
+When `All batches have been submitted` is displayed, all L2 blocks have been rolled up to L1.
 ```
 INFO [04-21|06:35:21.603] Waiting for CanonicalTransactionChain
 INFO [04-21|06:35:21.603] Waiting for StateCommitmentChain
@@ -253,30 +248,30 @@ INFO [04-21|06:35:21.604] Total elements matches block number      name=Canonica
 INFO [04-21|06:35:21.604] All batches have been submitted
 ```
 
-### 5. [OPStackノード] レプリケーションの確認
-レガシーノードとレプリカが完全同期するのを待ちます。
+### 5. [OPStack Node] Waiting for replication
+Wait for the legacy node and the replica to fully synchronize.
 ```shell
 cd /path/to/verse-layer-opstack/verse-layer-opstack-upgrade
 
 docker-compose run op-migrate /upgrade/scripts/check-replica.sh
 ```
 
-`Fully synchronized`と出力されたら完全に同期されています。
+When `Fully synchronized` is displayed, the replica is fully synchronized with the origin.
 ```shell
 origin : number=847 state=0xc7e84c57135bb52773f7f195885835e87d8ffdd67bdd3ace5ca8b79cac7fc529
 replica: number=847 state=0xc7e84c57135bb52773f7f195885835e87d8ffdd67bdd3ace5ca8b79cac7fc529
 Fully synchronized
 ```
 
-### 6. [OPStackノード] レプリカの停止
-レプリカを停止します。
+### 6. [OPStack Node] Stop the replica
+Stop the replica container on the OPStack node.
 ```shell
 cd /path/to/verse-layer-opstack/verse-layer-opstack-upgrade
 
 docker-compose stop replica
 ```
 
-停止時にStateTrieのプルーニングが行われるため時間がかかる場合があります。 **その場合もコンテナをKILLせずに正常終了するのを待ってください。** プルーニングが正常終了すると下記のログが出力されます。
+Stopping may take some time as the StateTrie is pruned. Even in such cases, **In this case, please wait for the container to stop normally instead of killing it.** When pruning is complete, the following log is output:
 ```shell
 docker-compose logs --tail=100 replica
 
@@ -291,28 +286,28 @@ replica-1  | INFO [04-21|06:48:52.049] Transaction pool stopped
 replica-1  | INFO [04-21|06:48:52.049] Stopping sync service
 ```
 
-### 7. [Builderウォレット] OPStackコントラクトセットをデプロイ
-BuilderウォレットからL1BuildAgentの`build(uint256 chainId, BuildConfig calldata cfg)`メソッドを実行してL1にOPStackのコントラクトセットをデプロイします。引数の指定と順番を間違えないように注意します。`cfg`引数の詳細はこちらを確認してください。
+### 7. [Builder Wallet] Deployment of the OPStack contracts to L1
+From the Builder Wallet, transact the `build(uint256 chainId, BuildConfig calldata cfg)` method of the L1BuildAgent to deploy OPStack contracts to L1. Pay close attention to the order of the `BuildConfig calldata cfg` parameters. See here for more details on the parameters:
 - [Oasys Docs](https://docs.oasys.games/docs/verse-developer/how-to-build-verse/optional-configs#verse-contracts-build-configuration)
 - [Contract Code](https://github.com/oasysgames/oasys-opstack/blob/4f2f04d/packages/contracts-bedrock/src/oasys/L1/build/interfaces/IL1BuildAgent.sol#L5-L51)
 
-| 引数名 | 型 | 概要 |
+| Parameter | Type | Description |
 | - | - | - |
-| chainId                               | uint256 | L2チェーンID |
-| cfg.finalSystemOwner                  | address | OPStackコントラクトセットのオーナー。基本的にはBuilderウォレットを指定します。 |
-| cfg.l2OutputOracleProposer            | address | ステートロールアップを行うウォレット。 `OP_PROPOSER_ADDR`を指定します。 |
-| cfg.l2OutputOracleChallenger          | address | ステートロールアップの削除を行うウォレット。基本的にはBuilderウォレットを指定します。 |
-| cfg.batchSenderAddress                | address | TXデータのロールアップを行うウォレット。`OP_BATCHER_ADDR`を指定します。 |
-| cfg.p2pSequencerAddress               | address | `P2P_SEQUENCER_ADDR`を指定します。 |
-| cfg.messageRelayer                    | address | L2からL1へブリッジメッセージを中継するウォレット。`MR_FINALIZER_ADDR`を指定します。 |
-| cfg.l2BlockTime                       | uint256 | L2のブロック間隔を2〜7秒の間で指定。 |
-| cfg.l2GasLimit                        | uint64  | L2ブロックの最大ガス。 特に希望が無い場合は`30000000`を指定します。 |
-| cfg.l2OutputOracleSubmissionInterval  | uint256 | ステートロールアップを行うL2のブロック数間隔。 特に希望が無い場合は`80`を指定します。 |
-| cfg.finalizationPeriodSeconds         | uint256 | ステートロールアップが最終化される秒数。時に希望がない場合は`604800`(7日間)を指定します。 |
-| cfg.l2OutputOracleStartingBlockNumber | uint256 | OPStack L2の開始ブロック番号。 下記のコマンドで取得してください。 |
-| cfg.l2OutputOracleStartingTimestamp   | uint256 | OPStack L2の開始ブロック時間。 下記のコマンドで取得してください。 |
+| chainId                               | uint256 | L2 Chain ID |
+| cfg.finalSystemOwner                  | address | Owner of the OPStack contracts, typically specified as the Builder Wallet. |
+| cfg.l2OutputOracleProposer            | address | Wallet that performs state roll-ups. Set the `OP_PROPOSER_ADDR`. |
+| cfg.l2OutputOracleChallenger          | address | Wallet that removes state roll-ups, typically specified as the Builder Wallet. |
+| cfg.batchSenderAddress                | address | Wallet that performs roll-ups of TX data. Set the `OP_BATCHER_ADDR`. |
+| cfg.p2pSequencerAddress               | address | Set the `P2P_SEQUENCER_ADDR`. |
+| cfg.messageRelayer                    | address | Wallet that relays bridge messages from L2 to L1. Set the `MR_FINALIZER_ADDR`. |
+| cfg.l2BlockTime                       | uint256 | Set the interval between L2 blocks, between 2 and 7 seconds. |
+| cfg.l2GasLimit                        | uint64  | Maximum gas for an L2 block. Set `30000000` if no particular preference. |
+| cfg.l2OutputOracleSubmissionInterval  | uint256 | Interval of L2 blocks between state roll-ups. Set `80` if no particular preference. |
+| cfg.finalizationPeriodSeconds         | uint256 | Number of seconds until state roll-ups are finalized. Set `604800`(7 days) if no preference. |
+| cfg.l2OutputOracleStartingBlockNumber | uint256 | Starting block number of OPStack L2. Obtain this with the command below. |
+| cfg.l2OutputOracleStartingTimestamp   | uint256 | Starting timestamp of OPStack L2 first block. Obtain this with the command below. |
 
-`l2OutputOracleStartingBlockNumber`と`l2OutputOracleStartingTimestamp`はOPStackノード上でコマンドを実行して取得してください。
+The `cfg.l2OutputOracleStartingBlockNumber` and `cfg.l2OutputOracleStartingTimestamp` are obtained by execute this command on the OPStack node.
 ```shell
 cd /path/to/verse-layer-opstack/verse-layer-opstack-upgrade
 
@@ -323,20 +318,20 @@ l2OutputOracleStartingBlockNumber: 848
 l2OutputOracleStartingTimestamp  : 1713686734
 ```
 
-### 8. [OPStackノード] OPStack構成ファイルのダウンロード
-コントラクトセットのデプロイが成功したら[Verse構築ツール](https://tools-fe.oasys.games/check-verse)から`deploy-config.json`と`addresses.json`をダウンロードします。ウォレットアプリ(Metamask等)はOasys Mainnetに接続します。
+### 8. [OPStack Node] Downloading of OPStack configuration files
+Once the contract set has been successfully deployed, download `deploy-config.json` and `addresses.json` from the [Verse Build Tool](https://tools-fe.oasys.games/check-verse). Wallet extensions (such as Metamask) should be connected to the Oasys mainnet or testnet.
 
-ダウンロードしたファイルはOPStackノードの`verse-layer-opstack/assets`ディレクトリにコピーします。
+Copy the downloaded files to the `verse-layer-opstack/assets` directory on the OPStack node.
 
-### 9. [OPStackノード] データマイグレーション
-レプリカが出力したレガシーなチェーンデータをOPStack用のチェーンデータにマイグレーションします。
+### 9. [OPStack Node] L2 data migration
+Migrate legacy chain data output by the replica for OPStack.
 ```shell
 cd /path/to/verse-layer-opstack/verse-layer-opstack-upgrade
 
 docker-compose run op-migrate /upgrade/scripts/data-migrate.sh
 ```
 
-`checked withdrawals`と出力されたらマイグレーションは成功しています。
+When `checked withdrawals` is displayed, the migration was successful.
 ```shell
 INFO [04-21|08:21:58.723] checked L1Block
 INFO [04-21|08:21:58.723] recomputing witness data
@@ -346,24 +341,22 @@ INFO [04-21|08:21:58.727] computed withdrawal storage slots        migrated=360 
 INFO [04-21|08:21:58.733] checked withdrawals
 ```
 
-念の為チェックコマンドを実行します。先ほどと同様に`checked withdrawals`と出力されていれば問題ありません。
+Run the check command just to be sure. If you see `checked withdrawals` in the same way, you have succeeded.
 ```shell
 docker-compose run op-migrate /upgrade/scripts/check-data-migrate.sh
 ```
 
-マイグレーションが完了したらレプリカの`data`ディレクトリをOPStackノードの`data/op-geth`ディレクトリに移動します。
+Once the migration was successful, move the migrated data directory to the `data/op-geth` directory on the OPStack project.
 ```shell
 cd /path/to/verse-layer-opstack
 
-# 存在しない場合は作成
+# Create if it does not exist
 mkdir data
 
 mv verse-layer-opstack-upgrade/data data/op-geth
 ```
 
-この際ディレクトリパスが`data/op-geth/data`とならないように注意します。
-
-**正しいディレクトリ構成**
+Be careful not to end up with a directory path like `data/op-geth/data`. **Correct Directory Structure:**
 ```shell
 ls -l data/op-geth
 
@@ -374,7 +367,7 @@ drwx------  3 user  users      96  4 22 12:16 keystore
 -rwxr-xr-x  1 user  users  381041  4 22 12:16 state-dump.txt
 ```
 
-また、`verse-layer-opstack/assets/rollup.json`ファイルが生成されている事を確認します。
+Also, ensure that the `verse-layer-opstack/assets/rollup.json` file has been generated.
 ```shell
 ls -l assets/rollup.json
 
@@ -382,8 +375,8 @@ ls -l assets/rollup.json
 -rwxr-xr-x  1 user  users  1065  4 22 12:28 assets/rollup.json
 ```
 
-### 10. [レガシーノード] レガシーノードの構成変更
-レガシーノードの`verse-layer-optimism/docker-compose.override.yml`に環境変数`ETH1_SYNC_SERVICE_ENABLE: 'false'`を追加します。
+### 10. [Legacy Node] Change configuration of the legacy node
+Add the environment variable `ETH1_SYNC_SERVICE_ENABLE: 'false'` to the `verse-layer-optimism/docker-compose.override.yml` of the legacy node. This way, l2geth can be running without need for the data-transport-layer.
 ```shell
 services:
   data-transport-layer:
@@ -396,20 +389,20 @@ services:
       ETH1_SYNC_SERVICE_ENABLE: 'false'  # <- like this
 ```
 
-レガシーノードの全てのコンテナを停止してl2gethコンテナのみを再起動します。アップグレード後のレガシーノードはHistorical Nodeとして稼働させるのでl2geth以外のコンテナは不要となります。
+Stop all containers on the legacy node and restart only the l2geth container. After the upgrade, the legacy node will operate as a `Historical Node`, so containers other than l2geth are not required.
 ```shell
 docker-compose down
 docker-compose up -d l2geth
 ```
 
-### 11. [OPStackノード] OPStackサービスの起動
-OPStackノードの`verse-layer-opstack/assets`ディレクトリに以下の必須構成ファイルが存在するか確認します。
+### 11. [OPStack Node] Launch of the OPStack
+Check the `verse-layer-opstack/assets` directory of the OPStack node for the presence of the required configuration files.
 - jwt.txt
 - addresses.json
 - deploy-config.json
 - rollup.json
 
-`verse-layer-opstack/docker-compose.override.yml`を作成してHistorical Nodeの環境変数を追加します。
+Create `verse-layer-opstack/docker-compose.override.yml` and add an environment variable to enable `Historical Node`.
 ```yaml
 services:
   op-geth:
@@ -417,7 +410,7 @@ services:
       GETH_ROLLUP_HISTORICALRPC: <URL of legacy l2geth rpc>
 ```
 
-.envファイルに不足している環境変数を追加します。コントラクトアドレスは`verse-layer-opstack/assets/addresses.json`から取得してください。
+Add any missing environment variables to the .env file. Obtain contract addresses from the `verse-layer-opstack/assets/addresses.json.`
 ```shell
 # address of the `L2OutputOracleProxy` contract on L1
 OP_L2OO_ADDR=
@@ -429,12 +422,12 @@ OP_L1CDM_ADDR=
 OP_PORTAL_ADDR=
 ```
 
-`op-geth`と`op-node`コンテナを起動します。
+Launch the `op-geth` and `op-node` containers.
 ```shell
 docker-compose up -d op-geth op-node
 ```
 
-正しく構成出来ている場合はコントラクトデプロイ時に指定した`cfg.l2BlockTime`の間隔でL2ブロックが生成されます。
+If configured correctly, L2 blocks will be generated at the interval specified in `cfg.l2BlockTime` at the time of contract deployment.
 ```shell
 docker-compose logs -f --tail=100 op-geth
 
@@ -446,9 +439,9 @@ op-geth-1  | INFO [04-21|08:39:49.008] Starting work on payload                 
 op-geth-1  | INFO [04-21|08:39:49.008] Updated payload                          id=0x7085fa059a5f525b number=170,744 hash=664974..d2b1f4 txs=1 withdrawals=0 gas=46841 fees=0 root=cf458c..350bcc elapsed="358.334µs"
 ```
 
-その他のコンテナも全て起動します。
+Also, start all other containers.
 ```shell
 docker-compose up -d op-batcher op-proposer message-relayer verse-verifier
 ```
 
-以上でOPStackへのアップグレードは完了です。
+This completes the upgrade to OPStack.
