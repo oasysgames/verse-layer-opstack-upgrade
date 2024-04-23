@@ -33,7 +33,7 @@ The following tasks do not involve service downtime and can be done in advance:
 
 ### Tasks on Upgrade Day
 
-The following tasks require service downtime, so maintenance time is needed:
+The following tasks require service downtime, so maintenance time is needed. Maintenance time will require 3-6 hours.
 1. Change configuration and Blocking new transactions of the legacy node 
 1. Pause L1 bridge contracts
 1. Waiting for L1 deposits
