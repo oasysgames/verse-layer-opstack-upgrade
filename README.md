@@ -13,7 +13,14 @@ The node on which Legacy Optimism is running. The Legacy Node must remain runnin
 
 ### OPStack Node
 
-This is a new node for running OPStack. It is recommended to use a separate instance from the legacy node. An OPStack node requires disk capacity equal to or greater than the legacy node to create a replica of legacy Optimism. Depending on the number of blocks, replication may take several hours to several days, so it is recommended to setup early.
+This is a new node for running OPStack. It is recommended to use a separate instance from the legacy node.
+
+OPStack node requires a disk size of about 30% of the legacy node because it creates a lightweight replica of the legacy Optimism. For example, if the size of the `data/l2geth` directory on the legacy node is 100 GB, the OPStack node will need about 30 GB.
+
+> [!IMPORTANT]
+> Replication can take tens of hours, so early setup is recommended.
+>
+> For example, in the case of SandVerse provided by Oasys (number of blocks: 7.5 million, l2geth data size: 28GB), when the legacy node and the OPStack node were deployed in the same region and zone on GCP, the replication took about 5 hours. Note that replication is not parallelized, so there is no advantage to using high iops storage.
 
 ## Upgrade Process
 
@@ -137,6 +144,16 @@ replica-1  | INFO [04-20|07:05:18.665] New block                                
 replica-1  | INFO [04-20|07:05:18.668] New block                                index=1     l1-timestamp=1713092629 l1-blocknumber=45 tx-hash=0xcab3d8a811aa6512d707817fff5bdd7cb6417fef515cd1ddbf397790fa7f6052 queue-orign=sequencer gas=21000 fees=0 elapsed=228.167µs
 ```
 
+Check that the hash and state root of the genesis block (number = 0) match. When `Synchronized` is displayed, the genesis block was synchronized with the origin. If they do not match, the copied genesis.json may be incorrect.
+```shell
+docker-compose run op-migrate /upgrade/scripts/check-replica.sh 0
+
+# Output
+origin : number=0 hash=0x530a5da1ef2f8473e47d302b99f3ae45adc928d9fdf700d882033e3115f1778a state=0x6bf09cb1f0cf9d836e48ce309a18cd815ee1fb36fa6909324346b013bbb27935
+replica: number=0 hash=0x530a5da1ef2f8473e47d302b99f3ae45adc928d9fdf700d882033e3115f1778a state=0x6bf09cb1f0cf9d836e48ce309a18cd815ee1fb36fa6909324346b013bbb27935
+Synchronized
+```
+
 The replica should remain running until the day of the upgrade.
 
 ### Transfer of ownership of legacy contracts
@@ -256,11 +273,11 @@ cd /path/to/verse-layer-opstack/verse-layer-opstack-upgrade
 docker-compose run op-migrate /upgrade/scripts/check-replica.sh
 ```
 
-When `Fully synchronized` is displayed, the replica is fully synchronized with the origin.
+When `Synchronized` is displayed, the replica is fully synchronized with the origin.
 ```shell
 origin : number=847 state=0xc7e84c57135bb52773f7f195885835e87d8ffdd67bdd3ace5ca8b79cac7fc529
 replica: number=847 state=0xc7e84c57135bb52773f7f195885835e87d8ffdd67bdd3ace5ca8b79cac7fc529
-Fully synchronized
+Synchronized
 ```
 
 ### 6. [OPStack Node] Stop the replica
@@ -284,6 +301,11 @@ replica-1  | INFO [04-21|06:48:52.045] Persisted trie from memory database      
 replica-1  | INFO [04-21|06:48:52.049] Blockchain manager stopped
 replica-1  | INFO [04-21|06:48:52.049] Transaction pool stopped
 replica-1  | INFO [04-21|06:48:52.049] Stopping sync service
+```
+
+Once the replica is successfully stopped, delete the container.
+```shell
+docker-compose rm -f replica
 ```
 
 ### 7. [Builder Wallet] Deployment of the OPStack contracts to L1
@@ -445,3 +467,10 @@ docker-compose up -d op-batcher op-proposer message-relayer verse-verifier
 ```
 
 This completes the upgrade to OPStack.
+
+After upgrading, the `verse-layer-opstack-upgrade` directory is not needed and may be deleted.
+```shell
+cd /path/to/verse-layer-opstack
+
+rm -rf verse-layer-opstack-upgrade
+```
