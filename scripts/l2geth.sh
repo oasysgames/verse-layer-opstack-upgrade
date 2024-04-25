@@ -3,8 +3,11 @@
 set -e
 
 KEY_FILE=$(mktemp)
-
 echo $BLOCK_SIGNER_KEY | cut -c 3-99 > $KEY_FILE
+
+if [ ! -f $DANGEROUS_UPDATE_CONTRACT ]; then
+  echo '{}' > $DANGEROUS_UPDATE_CONTRACT
+fi
 
 geth account import --password /dev/null $KEY_FILE || true
 rm -rf $KEY_FILE
