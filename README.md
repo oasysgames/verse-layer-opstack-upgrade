@@ -202,11 +202,11 @@ chmod +x ./scripts/check-owner-transfer.sh
 If the output contains `Failure`, it indicates the transfer failed. Otherwise, it succeeded.
 
 
-### Simulation
-#### Simulate L2 Data Migration
+## Simulation
+### Simulate L2 Data Migration
 L2 data migraiton is the most uncertain task, so make sure this is succeed. addinotaly this is the most time consuming task. so we masure the time to estime downtime.
 
-##### 1. Stop Replica container
+#### 1. Stop Replica container
 Stop the replica container on the OPStack node. This may take some time as the StateTrie is pruned. Even in such cases, please wait for the container to stop normally instead of forcing it to quit. Once pruning is complete, the following log will be output:
 ```shell
 cd /path/to/verse-layer-opstack/verse-layer-opstack-upgrade
@@ -222,7 +222,7 @@ replica-1  | INFO [04-21|06:48:52.049] Transaction pool stopped
 replica-1  | INFO [04-21|06:48:52.049] Stopping sync service
 ```
 
-##### 2. Migrate Data
+#### 2. Migrate Data
 Backup all replica data to a temporary directory.
 ```shell
 rsync -av --progress ./data /path/to/tmp
@@ -249,16 +249,16 @@ INFO [04-21|08:21:58.723] checked withdrawals
 Calculate the elapsed time from the logged time. Adding 30 minutes serves as a guideline for downtime.
 > Downtime: 30 minutes + L2 data migration elapsed time.
 
-##### 3. Restore Data
+#### 3. Restore Data
 Clear the generated data:
 ```shell
 # Delete outputs
 rm -r ./data
 
 # Delete configuration files
-rm $PATH_VERSE_LAYER_OPSTACK/assets/addresses.json
-rm $PATH_VERSE_LAYER_OPSTACK/assets/deploy-config.json
-rm $PATH_VERSE_LAYER_OPSTACK/assets/rollup.json
+rm ../assets/addresses.json
+rm ../assets/deploy-config.json
+rm ../assets/rollup.json
 ```
 Move the backed-up data from the temporary directory back to the original location.
 ```shell
@@ -325,7 +325,7 @@ docker-compose logs --tail=100 message-relayer | grep 'relayer sent multicall'
 # message-relayer-1  | {"level":30,"time":1714574303175,"msg":"relayer sent multicall: 0x5169a89911a39b2b531204ae726041e955ca11cf8d796dc78dc9ba6a2991fdc5"}
 ```
 
-Transact the `pauseLegacyL1CrossDomainMessenger(uint256 _chainId, address addressManager)` method of the L1BuildAgent contract from the Builder Wallet to pausing L1 bridge contracts. The parameter `_chainId` is the L2 chain ID and the parameter `addressManager` is the address of the AddressManager contract. Download the  [L1BuildAgent ABI](./docs/abi/IL1BuildAgent.json) here.
+To pause L1 bridge contra, transact the `pauseLegacyL1CrossDomainMessenger(uint256 _chainId, address addressManager)` method of the L1BuildAgent contract from the Builder Wallet to pausing L1 bridge contracts. The parameter `_chainId` is the L2 chain ID and the parameter `addressManager` is the address of the AddressManager contract. Download the  [L1BuildAgent ABI](./docs/abi/IL1BuildAgent.json) here.
 
 ### 3. [OPStack Node] Waiting for L1 deposits
 Wait for all deposit transactions sent to the L1 bridge contract to be bridged to the legacy node.
