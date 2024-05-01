@@ -417,7 +417,6 @@ docker-compose rm -f replica
 From the Builder Wallet, transact the `build(uint256 chainId, BuildConfig calldata cfg)` method of the L1BuildAgent to deploy OPStack contracts to L1. Pay close attention to the order of the `BuildConfig calldata cfg` parameters. See here for more details on the parameters:
 - [Oasys Docs](https://docs.oasys.games/docs/verse-developer/how-to-build-verse/optional-configs#verse-contracts-build-configuration)
 - [Contract Code](https://github.com/oasysgames/oasys-opstack/blob/4f2f04d/packages/contracts-bedrock/src/oasys/L1/build/interfaces/IL1BuildAgent.sol#L5-L51)
-- [tools-fe](https://tools-fe.oasys.games/build-verse): You can deploy contracts from the UI.
 
 | Parameter | Type | Description |
 | - | - | - |
@@ -450,8 +449,6 @@ l2OutputOracleStartingTimestamp  : 1713686734
 Once the contract set has been successfully deployed, download `deploy-config.json` and `addresses.json` from the [Verse Build Tool](https://tools-fe.oasys.games/check-verse). Wallet extensions (such as Metamask) should be connected to the Oasys mainnet or testnet.
 
 Copy the downloaded files to the `verse-layer-opstack/assets` directory on the OPStack node.
-
-Manually modify the `l2OutputOracleStartingBlockNumber` in `deploy-config.json` to the value mentioned above if you deploy contracts from the UI.
 
 ### 9. [OPStack Node] L2 data migration
 Migrate legacy chain data output by the replica for OPStack.
