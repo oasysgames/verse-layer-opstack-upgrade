@@ -8,10 +8,12 @@ else
     exit 1
 fi
 
+PATH_VERSE_LAYER_OPSTACK=..
+
 # Check that required environment variables are defined
-if [ -z "$PATH_VERSE_LAYER_OPSTACK" ] || [ -z "$L1_HTTP_URL" ]; then
+if [ -z "$L1_HTTP_URL" ]; then
     echo "Required environment variables are missing."
-    echo "Make sure PATH_VERSE_LAYER_OPSTACK and L1_HTTP_URL are set."
+    echo "Make sure L1_HTTP_URL are set."
     exit 1
 fi
 

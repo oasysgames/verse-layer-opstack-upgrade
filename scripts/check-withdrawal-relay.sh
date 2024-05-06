@@ -9,11 +9,20 @@ else
 fi
 
 # Ensure the required environment variables are set
-if [ -z "$STATE_COMMITMENT_CHAIN_ADDRESS" ] || [ -z "$L1_HTTP_URL" ]; then
+if [ -z "$PATH_VERSE_LAYER_OPTIMISM" ] || [ -z "$L1_HTTP_URL" ]; then
     echo "Required environment variables are missing."
-    echo "Make sure STATE_COMMITMENT_CHAIN_ADDRESS and L1_HTTP_URL are set."
+    echo "Make sure PATH_VERSE_LAYER_OPTIMISM and L1_HTTP_URL are set."
     exit 1
 fi
+
+# Check if the addresses.json file does not exist
+if [ ! -f "$PATH_VERSE_LAYER_OPTIMISM/assets/addresses.json" ]; then
+    echo "Error: addresses.json file not found in $PATH_VERSE_LAYER_OPTIMISM/assets/"
+    exit 1
+fi
+
+# Parse the required properties from the JSON file
+STATE_COMMITMENT_CHAIN_ADDRESS=$(jq -r '.StateCommitmentChain' "$PATH_VERSE_LAYER_OPTIMISM/assets/addresses.json")
 
 # Function to convert hex to decimal
 hex_to_dec() {

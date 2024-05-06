@@ -224,8 +224,10 @@ replica-1  | INFO [04-21|06:48:52.049] Stopping sync service
 
 #### 2. Migrate Data
 Backup all replica data to a temporary directory.
+> [!WARNING]
+> Ensure that you have enough disk space to backup replica data. The required disk size is equivalent to the size of the `./data` folder.
 ```shell
-rsync -av --progress ./data /path/to/tmp
+rsync -av --progress ./data/ /path/to/tmp
 ```
 Generate dummy configuration files:
 ```shell
@@ -262,7 +264,7 @@ rm ../assets/rollup.json
 ```
 Move the backed-up data from the temporary directory back to the original location.
 ```shell
-mv /path/to/tmp ./
+mv /path/to/tmp ./data
 ```
 Start the replica again to resume syncing.
 ```shell
@@ -317,12 +319,12 @@ chmod +x ./scripts/check-withdrawal-relay.sh
 ```
 If the script outputs a `Success` message, the process is okay. Otherwise, it has failed. Wait for one minute and then re-run the script.
 
-Additionally, confirm that at least one minute has passed since the last relay message was sent. To verify this, check the log of the message-relayer:
+Additionally, ensure that the message-relayer has verified the latest L2 height. To verify this, check the log of the message-relayer:
 ```shell
 docker-compose logs --tail=100 message-relayer | grep 'relayer sent multicall'
 
 # Output sample
-# message-relayer-1  | {"level":30,"time":1714574303175,"msg":"relayer sent multicall: 0x5169a89911a39b2b531204ae726041e955ca11cf8d796dc78dc9ba6a2991fdc5"}
+# message-relayer-1  | {"level":30,"time":1714631870038,"msg":"checking L2 block 7564066"}
 ```
 
 To pause L1 bridge contra, transact the `pauseLegacyL1CrossDomainMessenger(uint256 _chainId, address addressManager)` method of the L1BuildAgent contract from the Builder Wallet to pausing L1 bridge contracts. The parameter `_chainId` is the L2 chain ID and the parameter `addressManager` is the address of the AddressManager contract. Download the  [L1BuildAgent ABI](./docs/abi/IL1BuildAgent.json) here.

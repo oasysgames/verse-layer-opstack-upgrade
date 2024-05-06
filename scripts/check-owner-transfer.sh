@@ -9,11 +9,23 @@ else
 fi
 
 # Ensure required environment variables are set
-if [ -z "$L1_HTTP_URL" ] || [ -z "$L1_BUILD_AGENT_ADDRESS" ] || [ -z "$ADDRESS_MANAGER_ADDRESS" ] || [ -z "$L1_STANDARD_BRIDGE_ADDRESS" ] || [ -z "$L1_ERC721_BRIDGE_ADDRESS" ]; then
+if [ -z "$L1_HTTP_URL" ] || [ -z "$PATH_VERSE_LAYER_OPTIMISM" ]; then
     echo "Required environment variables are missing."
-    echo "Make sure L1_HTTP_URL, L1_BUILD_AGENT_ADDRESS, ADDRESS_MANAGER_ADDRESS, L1_STANDARD_BRIDGE_ADDRESS, and L1_ERC721_BRIDGE_ADDRESS are set."
+    echo "Make sure L1_HTTP_URL, PATH_VERSE_LAYER_OPTIMISM are set."
     exit 1
 fi
+
+# Check if the addresses.json file does not exist
+if [ ! -f "$PATH_VERSE_LAYER_OPTIMISM/assets/addresses.json" ]; then
+    echo "Error: addresses.json file not found in $PATH_VERSE_LAYER_OPTIMISM/assets/"
+    exit 1
+fi
+
+# Parse the required properties from the JSON file
+ADDRESS_MANAGER_ADDRESS=$(jq -r '.Lib_AddressManager' "$PATH_VERSE_LAYER_OPTIMISM/assets/addresses.json")
+L1_STANDARD_BRIDGE_ADDRESS=$(jq -r '.Proxy__OVM_L1StandardBridge' "$PATH_VERSE_LAYER_OPTIMISM/assets/addresses.json")
+L1_ERC721_BRIDGE_ADDRESS=$(jq -r '.Proxy__OVM_L1ERC721Bridge' "$PATH_VERSE_LAYER_OPTIMISM/assets/addresses.json")
+STATE_COMMITMENT_CHAIN_ADDRESS=$(jq -r '.StateCommitmentChain' "$PATH_VERSE_LAYER_OPTIMISM/assets/addresses.json")
 
 # Function to perform the validation
 validate_address() {
