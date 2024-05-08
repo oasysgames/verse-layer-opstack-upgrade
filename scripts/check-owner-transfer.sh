@@ -1,31 +1,13 @@
 #!/bin/bash
 
-# Load environment variables from .env file
-if [ -f .env ]; then
-    source .env
-else
-    echo "The .env file is missing."
-    exit 1
-fi
+set -eu
 
-# Ensure required environment variables are set
-if [ -z "$L1_HTTP_URL" ] || [ -z "$PATH_VERSE_LAYER_OPTIMISM" ]; then
-    echo "Required environment variables are missing."
-    echo "Make sure L1_HTTP_URL, PATH_VERSE_LAYER_OPTIMISM are set."
-    exit 1
-fi
+. /upgrade/scripts/lib.sh
 
-# Check if the addresses.json file does not exist
-if [ ! -f "$PATH_VERSE_LAYER_OPTIMISM/assets/addresses.json" ]; then
-    echo "Error: addresses.json file not found in $PATH_VERSE_LAYER_OPTIMISM/assets/"
-    exit 1
-fi
-
-# Parse the required properties from the JSON file
-ADDRESS_MANAGER_ADDRESS=$(jq -r '.Lib_AddressManager' "$PATH_VERSE_LAYER_OPTIMISM/assets/addresses.json")
-L1_STANDARD_BRIDGE_ADDRESS=$(jq -r '.Proxy__OVM_L1StandardBridge' "$PATH_VERSE_LAYER_OPTIMISM/assets/addresses.json")
-L1_ERC721_BRIDGE_ADDRESS=$(jq -r '.Proxy__OVM_L1ERC721Bridge' "$PATH_VERSE_LAYER_OPTIMISM/assets/addresses.json")
-STATE_COMMITMENT_CHAIN_ADDRESS=$(jq -r '.StateCommitmentChain' "$PATH_VERSE_LAYER_OPTIMISM/assets/addresses.json")
+ADDRESS_MANAGER_ADDRESS=$(legacy_address Lib_AddressManager)
+L1_STANDARD_BRIDGE_ADDRESS=$(legacy_address Proxy__OVM_L1StandardBridge)
+L1_ERC721_BRIDGE_ADDRESS=$(legacy_address Proxy__OVM_L1ERC721Bridge)
+STATE_COMMITMENT_CHAIN_ADDRESS=$(legacy_address StateCommitmentChain)
 
 # Function to perform the validation
 validate_address() {
@@ -46,7 +28,7 @@ validate_address() {
     response=$(curl -s $L1_HTTP_URL \
         -X POST \
         -H "Content-Type: application/json" \
-        --data "{\"method\":\"eth_call\",\"params\":[{\"from\":\"$L1_BUILD_AGENT_ADDRESS\",\"to\":\"$to_address\",\"data\":\"$data\"}, \"latest\"],\"id\":1,\"jsonrpc\":\"2.0\"}" | jq -r .result)
+        --data "{\"method\":\"eth_call\",\"params\":[{\"from\":null,\"to\":\"$to_address\",\"data\":\"$data\"}, \"latest\"],\"id\":1,\"jsonrpc\":\"2.0\"}" | jq -r .result)
 
     # Validate the response
     if [ "$response" == "$expected_lower" ]; then

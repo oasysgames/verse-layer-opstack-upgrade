@@ -193,11 +193,8 @@ If you have completed the transfer, ensure the ownership was transferred correct
 ```shell
 cd /path/to/verse-layer-opstack/verse-layer-opstack-upgrade
 
-# Make the script executable
-chmod +x ./scripts/check-owner-transfer.sh
-
 # Run the script
-./scripts/check-owner-transfer.sh
+docker-compose run op-migrate /upgrade/scripts/check-owner-transfer.sh
 ```
 If the output contains `Failure`, it indicates the transfer failed. Otherwise, it succeeded.
 
@@ -310,12 +307,8 @@ l2geth-1  | INFO [04-20|08:20:57.450] Reload access control config             m
 
 ### 2. [Builder Wallet] Pause L1 bridge contracts
 Before proceeding with this, even though it is optional, it is highly recommended to wait until all L2-to-L1 withdrawals have been relayed. To confirm this, follow these steps:
-```
-# Make the script executable
-chmod +x ./scripts/check-withdrawal-relay.sh
-
-# Run the script
-./scripts/check-withdrawal-relay.sh
+```shell
+docker-compose run op-migrate /upgrade/scripts/check-withdrawal-relay.sh
 ```
 If the script outputs a `Success` message, the process is okay. Otherwise, it has failed. Wait for one minute and then re-run the script.
 

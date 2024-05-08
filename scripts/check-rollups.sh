@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -eu
+
 . /upgrade/scripts/lib.sh
 
 exec op-migrate-rollover batches \
