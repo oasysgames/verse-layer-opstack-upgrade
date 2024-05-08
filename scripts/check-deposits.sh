@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -eu
+
 . /upgrade/scripts/lib.sh
 
 if [ "$1" == "origin" ]; then

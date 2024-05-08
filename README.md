@@ -7,9 +7,9 @@ Helper repository for upgrades from legacy Optimism to OPStack.
 
 Sometimes called `Verse Owner Wallet`. This is the wallet used to deploy the legacy Optimism contract set to L1. It will be used to deploy the OPStack contract set to L1 as well.
 
-### Legacy Node
+### Legacy Node (Verse v0)
 
-The node on which Legacy Optimism is running. The Legacy Node must remain running as a `Historical Node` after upgrading to OPStack. Historical Nodes provide users with pre-upgrade chain data (balances, trace data, etc.).
+The node on which Legacy Optimism, which is on major version zero. The Legacy Node must remain running as a `Historical Node` after upgrading to OPStack. Historical Nodes provide users with pre-upgrade chain data (balances, trace data, etc.).
 
 ### OPStack Node
 
@@ -31,10 +31,15 @@ The following tasks do not involve service downtime and can be done in advance:
 1. Setup the Replica
 1. Transfer of ownership of legacy contracts
 
+### Simulation
+
+Simulate the upgrade to ensure it proceeds correctly and estimate service downtime.
+1. Simulate L2 Data Migration
+
 ### Tasks on Upgrade Day
 
 The following tasks require service downtime, so maintenance time is needed. Maintenance time will require 3-6 hours.
-1. Change configuration and Blocking new transactions of the legacy node 
+1. Change configuration and Blocking new transactions of the legacy node
 1. Pause L1 bridge contracts
 1. Waiting for L1 deposits
 1. Waiting for L2 rollups
@@ -80,8 +85,6 @@ OP_PROPOSER_KEY=<Set the same secret key as `PROPOSER_KEY` in the legacy node>
 OP_BATCHER_ADDR=<Set the same address as `SEQUENCER_ADDRESS` in the legacy node>
 OP_BATCHER_KEY=<Set the same secret key as `SEQUENCER_KEY` in the legacy node>
 
-MR_PROVER_ADDR=<Set the same address as `MESSAGE_RELAYER_ADDRESS` in the legacy node>
-MR_PROVER_KEY=<Set the same secret key as `MESSAGE_RELAYER_KEY` in the legacy node>
 MR_FINALIZER_ADDR=<Set the same address as `MESSAGE_RELAYER_ADDRESS` in the legacy node>
 MR_FINALIZER_KEY=<Set the same secret key as `MESSAGE_RELAYER_KEY` in the legacy node>
 
@@ -186,9 +189,89 @@ jq -r .Proxy__OVM_L1StandardBridge assets/addresses.json
 # L1ERC721Bridge
 jq -r .Proxy__OVM_L1ERC721Bridge assets/addresses.json
 ```
+If you have completed the transfer, ensure the ownership was transferred correctly by running the check script:
+```shell
+cd /path/to/verse-layer-opstack/verse-layer-opstack-upgrade
+
+# Run the script
+docker-compose run op-migrate /upgrade/scripts/check-owner-transfer.sh
+```
+If the output contains `Failure`, it indicates the transfer failed. Otherwise, it succeeded.
+
+
+## Simulation
+### Simulate L2 Data Migration
+L2 data migraiton is the most uncertain task, so make sure this is succeed. addinotaly this is the most time consuming task. so we masure the time to estime downtime.
+
+#### 1. Stop Replica container
+Stop the replica container on the OPStack node. This may take some time as the StateTrie is pruned. Even in such cases, please wait for the container to stop normally instead of forcing it to quit. Once pruning is complete, the following log will be output:
+```shell
+cd /path/to/verse-layer-opstack/verse-layer-opstack-upgrade
+
+docker-compose stop replica
+```
+Log Output:
+```shell
+docker-compose logs --tail=100 replica
+
+# Output
+replica-1  | INFO [04-21|06:48:52.049] Transaction pool stopped
+replica-1  | INFO [04-21|06:48:52.049] Stopping sync service
+```
+
+#### 2. Migrate Data
+Backup all replica data to a temporary directory.
+> [!WARNING]
+> Ensure that you have enough disk space to backup replica data. The required disk size is equivalent to the size of the `./data` folder.
+```shell
+rsync -av --progress ./data/ /path/to/tmp
+```
+Generate dummy configuration files:
+```shell
+# Make the script executable
+chmod +x ./scripts/generate-dummy-configs.sh
+
+# Run the script
+./scripts/generate-dummy-configs.sh
+```
+Migrate legacy chain data output by the replica for OPStack.
+```shell
+# Print starting time
+TZ='UTC' date +"%m-%d|%H:%M:%S"
+
+docker-compose run op-migrate /upgrade/scripts/data-migrate.sh
+```
+When `checked withdrawals` is displayed, the migration is successful.
+```shell
+INFO [04-21|08:21:58.723] checked withdrawals
+```
+Calculate the elapsed time from the logged time. Adding 30 minutes serves as a guideline for downtime.
+> Downtime: 30 minutes + L2 data migration elapsed time.
+
+#### 3. Restore Data
+Clear the generated data:
+```shell
+# Delete outputs
+rm -r ./data
+
+# Delete configuration files
+rm ../assets/addresses.json
+rm ../assets/deploy-config.json
+rm ../assets/rollup.json
+```
+Move the backed-up data from the temporary directory back to the original location.
+```shell
+mv /path/to/tmp ./data
+```
+Start the replica again to resume syncing.
+```shell
+docker-compose start replica
+```
 
 ## Tasks on Upgrade Day
-### 1. [Legacy Node] Change configuration and Blocking new transactions of the legacy node 
+Before proceeding with the L2 upgrade, you should **inform the bridge service provider, such as Tealswap, about the downtime**. During the L2 upgrade, all L1 to L2 bridge transactions will be forcibly reverted.
+
+### 1. [Legacy Node] Change configuration and Blocking new transactions of the legacy node
 Change the `data-transport-layer` container of the legacy node to a container image for the upgrading. Additionally, enable access control on the `l2geth` container to blocking transactions and prevent new blocks from being created.
 
 Create `verse-layer-optimism/docker-compose.override.yml` file on the legacy node. If it already exists, add the differences.
@@ -223,7 +306,21 @@ l2geth-1  | INFO [04-20|08:20:57.450] Reload access control config             m
 ```
 
 ### 2. [Builder Wallet] Pause L1 bridge contracts
-Transact the `pauseLegacyL1CrossDomainMessenger(uint256 _chainId, address addressManager)` method of the L1BuildAgent contract from the Builder Wallet to pausing L1 bridge contracts. The parameter `_chainId` is the L2 chain ID and the parameter `addressManager` is the address of the AddressManager contract. Download the  [L1BuildAgent ABI](./docs/abi/IL1BuildAgent.json) here.
+Before proceeding with this, even though it is optional, it is highly recommended to wait until all L2-to-L1 withdrawals have been relayed. To confirm this, follow these steps:
+```shell
+docker-compose run op-migrate /upgrade/scripts/check-withdrawal-relay.sh
+```
+If the script outputs a `Success` message, the process is okay. Otherwise, it has failed. Wait for one minute and then re-run the script.
+
+Additionally, ensure that the message-relayer has verified the latest L2 height. To verify this, check the log of the message-relayer:
+```shell
+docker-compose logs --tail=100 message-relayer | grep 'relayer sent multicall'
+
+# Output sample
+# message-relayer-1  | {"level":30,"time":1714631870038,"msg":"checking L2 block 7564066"}
+```
+
+To pause L1 bridge contra, transact the `pauseLegacyL1CrossDomainMessenger(uint256 _chainId, address addressManager)` method of the L1BuildAgent contract from the Builder Wallet to pausing L1 bridge contracts. The parameter `_chainId` is the L2 chain ID and the parameter `addressManager` is the address of the AddressManager contract. Download the  [L1BuildAgent ABI](./docs/abi/IL1BuildAgent.json) here.
 
 ### 3. [OPStack Node] Waiting for L1 deposits
 Wait for all deposit transactions sent to the L1 bridge contract to be bridged to the legacy node.
@@ -309,6 +406,9 @@ docker-compose rm -f replica
 ```
 
 ### 7. [Builder Wallet] Deployment of the OPStack contracts to L1
+> [!CAUTION]
+> Once you complete this process, reverting to the legacy Verse becomes challenging. The only option would be to complete the entire upgrade process.
+
 From the Builder Wallet, transact the `build(uint256 chainId, BuildConfig calldata cfg)` method of the L1BuildAgent to deploy OPStack contracts to L1. Pay close attention to the order of the `BuildConfig calldata cfg` parameters. See here for more details on the parameters:
 - [Oasys Docs](https://docs.oasys.games/docs/verse-developer/how-to-build-verse/optional-configs#verse-contracts-build-configuration)
 - [Contract Code](https://github.com/oasysgames/oasys-opstack/blob/4f2f04d/packages/contracts-bedrock/src/oasys/L1/build/interfaces/IL1BuildAgent.sol#L5-L51)
