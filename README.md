@@ -553,6 +553,8 @@ OP_L1BRIDGE_ADDR=
 OP_PORTAL_ADDR=
 ```
 
+Apply all the hardforks by following the corresponding section in the official technical documentation: [Hardfork](https://docs.oasys.games/docs/verse-developer/how-to-build-verse/upgrade-verse#hardfork)
+
 Launch the `op-geth` and `op-node` containers.
 ```shell
 docker-compose up -d op-geth op-node
