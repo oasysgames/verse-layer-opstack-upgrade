@@ -574,7 +574,7 @@ op-geth-1  | INFO [04-21|08:39:49.008] Updated payload                          
 
 Also, start all other containers.
 ```shell
-docker-compose up -d op-batcher op-proposer message-relayer verse-verifier
+docker-compose up -d op-batcher op-proposer op-message-relayer verse-verifier
 ```
 
 This completes the upgrade to OPStack.
