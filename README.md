@@ -536,7 +536,7 @@ Check the `verse-layer-opstack/assets` directory of the OPStack node for the pre
 - deploy-config.json
 - rollup.json
 
-**Please share the above files except jwt.txt with the Oasys Dev team** to activate instant verification: `addresses.json`, `deploy-config.json`, `rollup.json`, and `state-dump.txt`. The state-dump.txt file is located in `data/op-geth/data`.
+**Please share the above `addresses.json` and `rollup.json`, and addionally `op-geth_migrated.tgz` with the Oasys Dev team** to activate instant verification.
 
 Create `verse-layer-opstack/docker-compose.override.yml` and add an environment variable to enable `Historical Node`.
 ```yaml
