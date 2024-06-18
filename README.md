@@ -484,7 +484,7 @@ mv verse-layer-opstack-upgrade/data data/op-geth
 ```
 
 > [!IMPORTANT]
-> It is recommended to backup the chain data after migration. This is used when setting up replica nodes. It is recommended to obtain disk snapshots of the OPStack node. When creating an archive, be mindful of the available disk space.
+> Backup the chain data after migration. This is used when setting up replica nodes. It is recommended to obtain disk snapshots of the OPStack node. When creating an archive, be mindful of the available disk space.
 > ```shell
 > # Create archive
 > tar -czf op-geth_migrated.tgz -C data/op-geth/ .
