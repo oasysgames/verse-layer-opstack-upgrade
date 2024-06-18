@@ -11,7 +11,7 @@ Sometimes called `Verse Owner Wallet`. This is the wallet used to deploy the leg
 
 The node on which Legacy Optimism, which is on major version zero. The Legacy Node must remain running as a `Historical Node` after upgrading to OPStack. Historical Nodes provide users with pre-upgrade chain data (balances, trace data, etc.).
 
-### OPStack Node
+### OPStack Node (Verse v1)
 
 This is a new node for running OPStack. It is recommended to use a separate instance from the legacy node.
 
@@ -50,6 +50,7 @@ The following tasks require service downtime, so maintenance time is needed. Mai
 1. L2 data migration
 1. Change configuration of the legacy node
 1. Launch of the OPStack
+1. Start Verse Verifier
 
 ## Preparation Tasks
 ### Setup the OPStack node
@@ -269,7 +270,11 @@ docker-compose start replica
 ```
 
 ## Tasks on Upgrade Day
-Before proceeding with the L2 upgrade, you should **inform the bridge service provider, such as Tealswap, about the downtime**. During the L2 upgrade, all L1 to L2 bridge transactions will be forcibly reverted.
+Before proceeding with the L2 upgrade, you should inform two parties:
+- The Bridge Service Provider (e.g., Tealswap)
+  - Inform them about the downtime. During the L2 upgrade, all L1 to L2 bridge transactions will be forcibly reverted.
+- Oasys Dev Team
+  - To activate instant verify right after your verse launch, Oasys will prepare the infrastructure settings. Inform the Oasys team about the schedule.
 
 ### 1. [Legacy Node] Change configuration and Blocking new transactions of the legacy node
 Change the `data-transport-layer` container of the legacy node to a container image for the upgrading. Additionally, enable access control on the `l2geth` container to blocking transactions and prevent new blocks from being created.
@@ -574,7 +579,7 @@ op-geth-1  | INFO [04-21|08:39:49.008] Updated payload                          
 
 Also, start all other containers.
 ```shell
-docker-compose up -d op-batcher op-proposer op-message-relayer verse-verifier
+docker-compose up -d op-batcher op-proposer op-message-relayer
 ```
 
 This completes the upgrade to OPStack.
@@ -584,4 +589,10 @@ After upgrading, the `verse-layer-opstack-upgrade` directory is not needed and m
 cd /path/to/verse-layer-opstack
 
 rm -rf verse-layer-opstack-upgrade
+```
+
+### 12. [OPStack Node] Start Verse Verifier
+After the Oasys team completes the infrastructure setup, start the verse verifier.
+```shell
+docker-compose up -d verse-verifier
 ```
