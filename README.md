@@ -448,6 +448,8 @@ l2OutputOracleStartingTimestamp  : 1713686734
 ### 8. [OPStack Node] Downloading of OPStack configuration files
 Once the contract set has been successfully deployed, download `deploy-config.json` and `addresses.json` from the [Verse Build Tool](https://tools-fe.oasys.games/check-verse). Wallet extensions (such as Metamask) should be connected to the Oasys mainnet or testnet.
 
+It's important to note that you are required to remove the `l2GenesisCanyonTimeOffset` property from `deploy-config.json`. Applying the canyon update should be done by following the steps written below.
+
 Copy the downloaded files to the `verse-layer-opstack/assets` directory on the OPStack node.
 
 ### 9. [OPStack Node] L2 data migration
