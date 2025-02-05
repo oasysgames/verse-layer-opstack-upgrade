@@ -161,7 +161,7 @@ Synchronized
 The replica should remain running until the day of the upgrade.
 
 ### Transfer of ownership of legacy contracts
-To proceed with the upgrade, the ownership of some legacy contracts must be transferred to the [`L1BuildAgent`](../../packages/contracts-bedrock/src/oasys/L1/build/L1BuildAgent.sol) provided by Oasys.
+To proceed with the upgrade, the ownership of some legacy contracts must be transferred to the [`L1BuildAgent`](https://github.com/oasysgames/oasys-opstack/blob/v1.1.0/packages/contracts-bedrock/src/oasys/L1/build/L1BuildAgent.sol) provided by Oasys.
 
 **L1BuildAgent Contract Address**
 - Oasys Mainnet: `0x85D92cD5d9b7942f2Ed0d02C6b5120E9D43C52aA`
@@ -448,7 +448,7 @@ l2OutputOracleStartingTimestamp  : 1713686734
 ### 8. [OPStack Node] Downloading of OPStack configuration files
 Once the contract set has been successfully deployed, download `deploy-config.json` and `addresses.json` from the [Verse Build Tool](https://tools-fe.oasys.games/check-verse). Wallet extensions (such as Metamask) should be connected to the Oasys mainnet or testnet.
 
-It's important to note that you are required to remove the `l2GenesisCanyonTimeOffset` property from `deploy-config.json`. Applying the canyon update should be done by following the steps written below.
+It's important to note that you are required to remove the `l2GenesisCanyonTimeOffset` property from `deploy-config.json`. Applying the canyon update should be done by the next guide: [Hardfork:Apply Canyon](https://docs.oasys.games/docs/verse-developer/how-to-build-verse/upgrade-verse#hardfork)
 
 Copy the downloaded files to the `verse-layer-opstack/assets` directory on the OPStack node.
 
