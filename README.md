@@ -319,7 +319,7 @@ If the script outputs a `Success` message, the process is okay. Otherwise, it ha
 
 Additionally, ensure that the message-relayer has verified the latest L2 height. To verify this, check the log of the message-relayer:
 ```shell
-docker-compose logs --tail=1000 message-relayer | grep 'checking L2 bloc'
+docker-compose logs --tail=1000 message-relayer | grep 'checking L2 block'
 
 # Output sample
 # message-relayer-1  | {"level":30,"time":1714631870038,"msg":"checking L2 block 7564066"}
