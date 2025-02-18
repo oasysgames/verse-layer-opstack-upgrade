@@ -55,6 +55,8 @@ The following tasks require service downtime, so maintenance time is needed. Mai
 ## Preparation Tasks
 ### Setup the OPStack node
 
+It is recommended to set up a replica on another server where the legacy verse-layer-optimism is running, as the new verse-layer-opstack will be built on the same server where the replica is set up. The new server's storage size must be at least twice the size of the current l2geth usage, as we recommend taking a snapshot of it during the upgrade procedure.
+
 Clone the [verse-layer-opstack](https://github.com/oasysgames/verse-layer-opstack) repository.
 ```shell
 git clone https://github.com/oasysgames/verse-layer-opstack.git
@@ -161,7 +163,7 @@ Synchronized
 The replica should remain running until the day of the upgrade.
 
 ### Transfer of ownership of legacy contracts
-To proceed with the upgrade, the ownership of some legacy contracts must be transferred to the [`L1BuildAgent`](https://github.com/oasysgames/oasys-opstack/blob/v1.1.0/packages/contracts-bedrock/src/oasys/L1/build/L1BuildAgent.sol) provided by Oasys.
+To proceed with the upgrade, the ownership of some legacy contracts must be transferred to the [`L1BuildAgent`](../../packages/contracts-bedrock/src/oasys/L1/build/L1BuildAgent.sol) provided by Oasys.
 
 **L1BuildAgent Contract Address**
 - Oasys Mainnet: `0x85D92cD5d9b7942f2Ed0d02C6b5120E9D43C52aA`
@@ -319,13 +321,13 @@ If the script outputs a `Success` message, the process is okay. Otherwise, it ha
 
 Additionally, ensure that the message-relayer has verified the latest L2 height. To verify this, check the log of the message-relayer:
 ```shell
-docker-compose logs --tail=1000 message-relayer | grep 'checking L2 block'
+docker-compose logs --tail=100 message-relayer | grep 'relayer sent multicall'
 
 # Output sample
 # message-relayer-1  | {"level":30,"time":1714631870038,"msg":"checking L2 block 7564066"}
 ```
 
-To pause L1 bridge contra, transact the `pauseLegacyL1CrossDomainMessenger(uint256 _chainId, address addressManager)` method of the L1BuildAgent contract from the Builder Wallet to pausing L1 bridge contracts. The parameter `_chainId` is the L2 chain ID and the parameter `addressManager` is the address of the AddressManager contract. Download the  [L1BuildAgent ABI](./docs/abi/IL1BuildAgent.json) here.
+To pause L1 bridge transaction, transact the `pauseLegacyL1CrossDomainMessenger(uint256 _chainId, address addressManager)` method of the L1BuildAgent contract from the Builder Wallet to pausing L1 bridge contracts. The parameter `_chainId` is the L2 chain ID and the parameter `addressManager` is the address of the AddressManager contract. Download the  [L1BuildAgent ABI](./docs/abi/IL1BuildAgent.json) here.
 
 ### 3. [OPStack Node] Waiting for L1 deposits
 Wait for all deposit transactions sent to the L1 bridge contract to be bridged to the legacy node.
@@ -447,8 +449,6 @@ l2OutputOracleStartingTimestamp  : 1713686734
 
 ### 8. [OPStack Node] Downloading of OPStack configuration files
 Once the contract set has been successfully deployed, download `deploy-config.json` and `addresses.json` from the [Verse Build Tool](https://tools-fe.oasys.games/check-verse). Wallet extensions (such as Metamask) should be connected to the Oasys mainnet or testnet.
-
-It's important to note that you are required to remove the `l2GenesisCanyonTimeOffset` property from `deploy-config.json`. Will apply the Canyon hardfork along with other hardforks before starting up `op-geth` and `op-node` in the section of `Launch of the OPStack`.
 
 Copy the downloaded files to the `verse-layer-opstack/assets` directory on the OPStack node.
 
@@ -599,4 +599,27 @@ rm -rf verse-layer-opstack-upgrade
 After the Oasys team completes the infrastructure setup, start the verse verifier.
 ```shell
 docker-compose up -d verse-verifier
+```
+
+## Troubleshooting
+
+### How to resolve the `Cannot recover OVM Context` error when setting up a replica?
+The block signer key (`BLOCK_SIGNER_KEY`) configured in the .env file does not match the one set in the origin node. Please verify the `BLOCK_SIGNER_KEY` in the verse-layer-optimism .env file and ensure they are identical.
+
+---
+### How to resolve the `DTL_SHUTOFF_BLOCK` error when executing the check-deposits.sh script?
+You may have forgotten to call the `pauseLegacyL1CrossDomainMessenger` function of L1BuildAgent. This step should be performed just before running the check-deposits.sh script.
+
+---
+### How to resolve the following permission error when starting op-node and op-geth?
+```sh
+# example error of op-geth
+op-geth-1  | ERROR[02-17|10:43:11.002] Failed to persist node key: open /data/geth/nodekey: permission denied
+op-geth-1  | WARN [02-17|10:43:11.002] Failed to watch keystore folder          path=/data/keystore err="permission denied"
+```
+
+This issue occurs due to insufficient permissions for the Docker user. The simplest way to fix this (though not the most secure practice) is to grant read and write access to all users:
+```sh
+cd verse-layer-opstack
+chmod -R a+rwX ./data
 ```
