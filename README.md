@@ -137,12 +137,12 @@ Copy the following files from the `verse-layer-optimism/assets` directory on the
 
 Start the replica.
 ```shell
-docker-compose up -d replica
+docker compose up -d replica
 ```
 
 If the `New block` logs are being output, synchronization is progressing.
 ```shell
-docker-compose logs -f replica
+docker compose logs -f replica
 
 # Outputs
 replica-1  | INFO [04-20|07:05:18.663] Syncing transaction batch range          start=0 end=70
@@ -152,7 +152,7 @@ replica-1  | INFO [04-20|07:05:18.668] New block                                
 
 Check that the hash and state root of the genesis block (number = 0) match. When `Synchronized` is displayed, the genesis block was synchronized with the origin. If they do not match, the copied genesis.json may be incorrect.
 ```shell
-docker-compose run op-migrate /upgrade/scripts/check-replica.sh 0
+docker compose run op-migrate /upgrade/scripts/check-replica.sh 0
 
 # Output
 origin : number=0 hash=0x530a5da1ef2f8473e47d302b99f3ae45adc928d9fdf700d882033e3115f1778a state=0x6bf09cb1f0cf9d836e48ce309a18cd815ee1fb36fa6909324346b013bbb27935
@@ -197,7 +197,7 @@ If you have completed the transfer, ensure the ownership was transferred correct
 cd /path/to/verse-layer-opstack/verse-layer-opstack-upgrade
 
 # Run the script
-docker-compose run op-migrate /upgrade/scripts/check-owner-transfer.sh
+docker compose run op-migrate /upgrade/scripts/check-owner-transfer.sh
 ```
 If the output contains `Failure`, it indicates the transfer failed. Otherwise, it succeeded.
 
@@ -211,11 +211,11 @@ Stop the replica container on the OPStack node. This may take some time as the S
 ```shell
 cd /path/to/verse-layer-opstack/verse-layer-opstack-upgrade
 
-docker-compose stop replica
+docker compose stop replica
 ```
 Log Output:
 ```shell
-docker-compose logs --tail=100 replica
+docker compose logs --tail=100 replica
 
 # Output
 replica-1  | INFO [04-21|06:48:52.049] Transaction pool stopped
@@ -242,7 +242,7 @@ Migrate legacy chain data output by the replica for OPStack.
 # Print starting time
 TZ='UTC' date +"%m-%d|%H:%M:%S"
 
-docker-compose run op-migrate /upgrade/scripts/data-migrate.sh
+docker compose run op-migrate /upgrade/scripts/data-migrate.sh
 ```
 When `checked withdrawals` is displayed, the migration is successful.
 ```shell
@@ -268,7 +268,7 @@ mv /path/to/tmp ./data
 ```
 Start the replica again to resume syncing.
 ```shell
-docker-compose start replica
+docker compose start replica
 ```
 
 ## Tasks on Upgrade Day
@@ -298,15 +298,15 @@ Create access control configuration file `./assets/acl.yml`. If it already exist
 from: []
 ```
 
-Stop and start the containers to reflect the changes. **Do not use `docker-compose restart` command.**
+Stop and start the containers to reflect the changes. **Do not use `docker compose restart` command.**
 ```shell
-docker-compose stop data-transport-layer l2geth
-docker-compose up -d data-transport-layer l2geth
+docker compose stop data-transport-layer l2geth
+docker compose up -d data-transport-layer l2geth
 ```
 
 Check if the `acl.yml` has been loaded.
 ```shell
-docker-compose logs -f --tail=10000 l2geth | grep 'Reload access control config'
+docker compose logs -f --tail=10000 l2geth | grep 'Reload access control config'
 
 # Output
 l2geth-1  | INFO [04-20|08:20:57.450] Reload access control config             md5hash=4ad59fbe28b0482602e30eb0f0088217
@@ -315,13 +315,13 @@ l2geth-1  | INFO [04-20|08:20:57.450] Reload access control config             m
 ### 2. [Builder Wallet] Pause L1 bridge contracts
 Before proceeding with this, even though it is optional, it is highly recommended to wait until all L2-to-L1 withdrawals have been relayed. To confirm this, follow these steps:
 ```shell
-docker-compose run op-migrate /upgrade/scripts/check-withdrawal-relay.sh
+docker compose run op-migrate /upgrade/scripts/check-withdrawal-relay.sh
 ```
 If the script outputs a `Success` message, the process is okay. Otherwise, it has failed. Wait for one minute and then re-run the script.
 
 Additionally, ensure that the message-relayer has verified the latest L2 height. To verify this, check the log of the message-relayer:
 ```shell
-docker-compose logs --tail=100 message-relayer | grep 'relayer sent multicall'
+docker compose logs --tail=100 message-relayer | grep 'relayer sent multicall'
 
 # Output sample
 # message-relayer-1  | {"level":30,"time":1714631870038,"msg":"checking L2 block 7564066"}
@@ -334,7 +334,7 @@ Wait for all deposit transactions sent to the L1 bridge contract to be bridged t
 ```shell
 cd /path/to/verse-layer-opstack/verse-layer-opstack-upgrade
 
-docker-compose run op-migrate /upgrade/scripts/check-deposits.sh origin
+docker compose run op-migrate /upgrade/scripts/check-deposits.sh origin
 ```
 
 When `All deposits have been batch submitted` is displayed, all L1 deposits have been bridged to the Legacy Node.
@@ -349,7 +349,7 @@ INFO [04-21|06:28:42.848] All deposits have been batch submitted
 
 Similarly, wait for L1 deposits to be bridged to the replica.
 ```shell
-docker-compose run op-migrate /upgrade/scripts/check-deposits.sh replica
+docker compose run op-migrate /upgrade/scripts/check-deposits.sh replica
 ```
 
 ### 4. [OPStack Node] Waiting for L2 rollups
@@ -357,7 +357,7 @@ Wait for all L2 blocks to be rolled up to the L1.
 ```shell
 cd /path/to/verse-layer-opstack/verse-layer-opstack-upgrade
 
-docker-compose run op-migrate /upgrade/scripts/check-rollups.sh
+docker compose run op-migrate /upgrade/scripts/check-rollups.sh
 ```
 
 When `All batches have been submitted` is displayed, all L2 blocks have been rolled up to L1.
@@ -374,7 +374,7 @@ Wait for the legacy node and the replica to fully synchronize.
 ```shell
 cd /path/to/verse-layer-opstack/verse-layer-opstack-upgrade
 
-docker-compose run op-migrate /upgrade/scripts/check-replica.sh
+docker compose run op-migrate /upgrade/scripts/check-replica.sh
 ```
 
 When `Synchronized` is displayed, the replica is fully synchronized with the origin.
@@ -389,12 +389,12 @@ Stop the replica container on the OPStack node.
 ```shell
 cd /path/to/verse-layer-opstack/verse-layer-opstack-upgrade
 
-docker-compose stop replica
+docker compose stop replica
 ```
 
 Stopping may take some time as the StateTrie is pruned. Even in such cases, **In this case, please wait for the container to stop normally instead of killing it.** When pruning is complete, the following log is output:
 ```shell
-docker-compose logs --tail=100 replica
+docker compose logs --tail=100 replica
 
 # Output
 replica-1  | INFO [04-21|06:48:52.041] Persisted trie from memory database      nodes=1769 size=175.24KiB time=15.116166ms gcnodes=11698 gcsize=2.50MiB gctime=17.113675ms livenodes=3912 livesize=805.33KiB
@@ -409,7 +409,7 @@ replica-1  | INFO [04-21|06:48:52.049] Stopping sync service
 
 Once the replica is successfully stopped, delete the container.
 ```shell
-docker-compose rm -f replica
+docker compose rm -f replica
 ```
 
 ### 7. [Builder Wallet] Deployment of the OPStack contracts to L1
@@ -440,7 +440,7 @@ The `cfg.l2OutputOracleStartingBlockNumber` and `cfg.l2OutputOracleStartingTimes
 ```shell
 cd /path/to/verse-layer-opstack/verse-layer-opstack-upgrade
 
-docker-compose run op-migrate /upgrade/scripts/l2oo-starting-block.sh
+docker compose run op-migrate /upgrade/scripts/l2oo-starting-block.sh
 
 # Output
 l2OutputOracleStartingBlockNumber: 848
@@ -457,7 +457,7 @@ Migrate legacy chain data output by the replica for OPStack.
 ```shell
 cd /path/to/verse-layer-opstack/verse-layer-opstack-upgrade
 
-docker-compose run op-migrate /upgrade/scripts/data-migrate.sh
+docker compose run op-migrate /upgrade/scripts/data-migrate.sh
 ```
 
 When `checked withdrawals` is displayed, the migration was successful.
@@ -472,7 +472,7 @@ INFO [04-21|08:21:58.733] checked withdrawals
 
 Run the check command just to be sure. If you see `checked withdrawals` in the same way, you have succeeded.
 ```shell
-docker-compose run op-migrate /upgrade/scripts/check-data-migrate.sh
+docker compose run op-migrate /upgrade/scripts/check-data-migrate.sh
 ```
 
 Once the migration was successful, move the migrated data directory to the `data/op-geth` directory on the OPStack project.
@@ -527,8 +527,8 @@ services:
 
 Stop all containers on the legacy node and restart only the l2geth container. After the upgrade, the legacy node will operate as a `Historical Node`, so containers other than l2geth are not required.
 ```shell
-docker-compose down
-docker-compose up -d l2geth
+docker compose down
+docker compose up -d l2geth
 ```
 
 ### 11. [OPStack Node] Launch of the OPStack
@@ -566,12 +566,12 @@ Apply all the hardforks by following the corresponding section in the official t
 
 Launch the `op-geth` and `op-node` containers.
 ```shell
-docker-compose up -d op-geth op-node
+docker compose up -d op-geth op-node
 ```
 
 If configured correctly, L2 blocks will be generated at the interval specified in `cfg.l2BlockTime` at the time of contract deployment.
 ```shell
-docker-compose logs -f --tail=100 op-geth
+docker compose logs -f --tail=100 op-geth
 
 # Output
 op-geth-1  | INFO [04-21|08:39:48.952] Stopping work on payload                 id=0x273b7c4af4036d30 reason=delivery
@@ -583,7 +583,7 @@ op-geth-1  | INFO [04-21|08:39:49.008] Updated payload                          
 
 Also, start all other containers.
 ```shell
-docker-compose up -d op-batcher op-proposer op-message-relayer
+docker compose up -d op-batcher op-proposer op-message-relayer
 ```
 
 This completes the upgrade to OPStack.
@@ -598,7 +598,7 @@ rm -rf verse-layer-opstack-upgrade
 ### 12. [OPStack Node] Start Verse Verifier
 After the Oasys team completes the infrastructure setup, start the verse verifier.
 ```shell
-docker-compose up -d verse-verifier
+docker compose up -d verse-verifier
 ```
 
 ## Troubleshooting
