@@ -30,6 +30,7 @@ The following tasks do not involve service downtime and can be done in advance:
 1. Setup the OPStack node
 1. Setup the Replica
 1. Transfer of ownership of legacy contracts
+1. Upgrade Explorer to v6
 
 ### Simulation
 
@@ -201,6 +202,11 @@ docker compose run op-migrate /upgrade/scripts/check-owner-transfer.sh
 ```
 If the output contains `Failure`, it indicates the transfer failed. Otherwise, it succeeded.
 
+### Upgrade Explorer to v6
+Upgrade Explorer to v6 (if your current version is v5).
+- Setup instructions: [Explorer v6 Setup Guide](https://docs.oasys.games/docs/verse-developer/how-to-build-verse/explorer)
+- Guide explains how to add the Stats page (optional but recommended): [Charts and Stats](https://docs.oasys.games/docs/verse-developer/how-to-build-verse/stats)
+- Guide explains how to add the Bridge page (optional): [Bridge](https://docs.oasys.games/docs/verse-developer/how-to-build-verse/bridge)
 
 ## Simulation
 ### Simulate L2 Data Migration
