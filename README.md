@@ -164,7 +164,7 @@ Synchronized
 The replica should remain running until the day of the upgrade.
 
 ### Transfer of ownership of legacy contracts
-To proceed with the upgrade, the ownership of some legacy contracts must be transferred to the [`L1BuildAgent`](../../packages/contracts-bedrock/src/oasys/L1/build/L1BuildAgent.sol) provided by Oasys.
+To proceed with the upgrade, the ownership of some legacy contracts must be transferred to the [L1BuildAgent](https://github.com/oasysgames/oasys-opstack/blob/l1-contracts/v1.0.0/packages/contracts-bedrock/src/oasys/L1/build/L1BuildAgent.sol) provided by Oasys.
 
 **L1BuildAgent Contract Address**
 - Oasys Mainnet: `0x85D92cD5d9b7942f2Ed0d02C6b5120E9D43C52aA`
