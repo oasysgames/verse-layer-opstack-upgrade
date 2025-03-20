@@ -18,7 +18,7 @@ validate_address() {
     echo "$message"
 
     # Zero pad L1_BUILD_AGENT_ADDRESS to 32 bytes (64 hex characters)
-    padded_address=$(printf '%064s' "${L1_BUILD_AGENT_ADDRESS:2}")
+    padded_address=$(printf '%064s' "${L1_BUILD_AGENT_ADDRESS:2}" | tr ' ' '0')
 
     # Convert to lowercase
     expected="0x$padded_address"
