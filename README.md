@@ -629,3 +629,17 @@ This issue occurs due to insufficient permissions for the Docker user. The simpl
 cd verse-layer-opstack
 chmod -R a+rwX ./data
 ```
+
+---
+### How to resolve the L2 → L1 bridge error bellow?
+```sh
+StandardBridge: bridging ETH must include sufficient ETH value
+```
+
+This error occurs when you're attempting to withdraw OAS from L2 to L1 and haven't included the `value` in the transaction. To fix it, make sure to specify the value parameter in your transaction, equal to the amount you intend to withdraw.
+
+The reason for this error is that the withdraw function interface has changed. While the input and output remain the same, the new version of the function is now payable. That means you must send an equivalent amount of OAS when calling withdraw, by setting the correct value in your transaction.
+
+For reference, here's the function interface before and after the change:
+- Legacy [withdraw](https://github.com/oasysgames/oasys-optimism/blob/v0.1.7/packages/contracts/contracts/L2/messaging/L2StandardBridge.sol#L54-L59) function
+- OP Stack [withdraw](https://github.com/oasysgames/oasys-opstack/blob/v1.0.0/packages/contracts-bedrock/src/L2/L2StandardBridge.sol#L79-L88) function
