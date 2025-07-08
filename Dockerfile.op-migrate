@@ -1,4 +1,4 @@
-FROM --platform=linux/amd64 ghcr.io/foundry-rs/foundry:nightly-51b75c83045a963a48f9cd8d765e0f2e775acb3e as foundry
+FROM --platform=linux/amd64 ghcr.io/foundry-rs/foundry:v1.0.0 as foundry
 
 FROM ghcr.io/oasysgames/oasys-opstack/op-migrate:op-migrate
 
