@@ -254,8 +254,17 @@ When `checked withdrawals` is displayed, the migration is successful.
 ```shell
 INFO [04-21|08:21:58.723] checked withdrawals
 ```
-Calculate the elapsed time from the logged time. Adding 30 minutes serves as a guideline for downtime.
-> Downtime: 30 minutes + L2 data migration elapsed time.
+Calculate the elapsed time from the logged time.
+
+Create an archive of the data/op-geth directory. To speed up the archiving process, we highly recommend using [pigz](https://zlib.net/pigz/) as the compression tool. Please make sure it is installed in advance.
+```
+time tar -c --use-compress-program=pigz -f op-geth_migrated.tgz -C data/op-geth .
+```
+
+##### Estimated Service Downtime
+In most cases, data migration and archive creation are the most time-consuming steps.
+As a general guideline, please estimate downtime as:
+> Downtime = 1 hour + L2 data migration time + archive creation time
 
 #### 3. Restore Data
 Clear the generated data:
@@ -281,6 +290,8 @@ docker compose start replica
 Before proceeding with the L2 upgrade, you should inform two parties:
 - The Bridge Service Provider (e.g., Tealswap)
   - Inform them about the downtime. During the L2 upgrade, all L1 to L2 bridge transactions will be forcibly reverted.
+  - Switching the L2 → L1 bridge interface is required after the upgrade. For more details, please refer to [How to resolve the L2 → L1 bridge error bellow?](https://github.com/oasysgames/verse-layer-opstack-upgrade/tree/main?tab=readme-ov-file#how-to-resolve-the-l2--l1-bridge-error-bellow)
+  - [Oasys Passport](https://www.oasys-wallet.com/), [TealSwap](https://app.v2.tealswap.com/bridge/oasys-verse/?), [GamingDex](https://www.gaming-dex.com/#/defiverse/bridge), [Explorer managed by Mochiron(optional)](https://explorer.oasys.mycryptoheroes.net/bridge)
 - Oasys Dev Team
   - To activate instant verify right after your verse launch, Oasys will prepare the infrastructure settings. Inform the Oasys team about the schedule.
 
@@ -495,7 +506,7 @@ mv verse-layer-opstack-upgrade/data data/op-geth
 > Backup the chain data after migration. This is used when setting up replica nodes. It is recommended to obtain disk snapshots of the OPStack node. When creating an archive, be mindful of the available disk space.
 > ```shell
 > # Create archive
-> tar -czf op-geth_migrated.tgz -C data/op-geth/ .
+> tar -c --use-compress-program=pigz -f op-geth_migrated.tgz -C data/op-geth .
 > ```
 
 Be careful not to end up with a directory path like `data/op-geth/data`. **Correct Directory Structure:**
